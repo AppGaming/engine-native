@@ -24,9 +24,15 @@
 package com.cocos.lib;
 
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 public class Utils {
+
+    private static Handler uiHandler = null;
 
     public static void hideVirtualButton() {
         if (Build.VERSION.SDK_INT >= 19 &&
@@ -53,5 +59,12 @@ public class Utils {
                     new Class[]{Integer.TYPE},
                     parameters);
         }
+    }
+
+    public static void runOnUiThread(@NonNull Runnable runnable) {
+        if (uiHandler == null) {
+            uiHandler = new Handler(Looper.getMainLooper());
+        }
+        uiHandler.post(runnable);
     }
 }

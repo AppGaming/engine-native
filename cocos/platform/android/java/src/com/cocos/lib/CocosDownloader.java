@@ -307,7 +307,7 @@ public class CocosDownloader {
     }
 
     public static void abort(final CocosDownloader downloader, final int id) {
-        GlobalObject.getActivity().runOnUiThread(new Runnable() {
+        Utils.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Iterator iter = downloader._taskMap.entrySet().iterator();
@@ -327,7 +327,7 @@ public class CocosDownloader {
     }
 
     public static void cancelAllRequests(final CocosDownloader downloader) {
-        GlobalObject.getActivity().runOnUiThread(new Runnable() {
+        Utils.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 for (Object o : downloader._taskMap.entrySet()) {
@@ -345,7 +345,7 @@ public class CocosDownloader {
     private void enqueueTask(Runnable taskRunnable) {
         synchronized (_taskQueue) {
             if (_runningTaskCount < _countOfMaxProcessingTasks) {
-                GlobalObject.getActivity().runOnUiThread(taskRunnable);
+                Utils.runOnUiThread(taskRunnable);
                 _runningTaskCount++;
             } else {
                 _taskQueue.add(taskRunnable);
@@ -359,7 +359,7 @@ public class CocosDownloader {
                 CocosDownloader.this._taskQueue.size() > 0) {
                 
                 Runnable taskRunnable = CocosDownloader.this._taskQueue.poll();
-                GlobalObject.getActivity().runOnUiThread(taskRunnable);
+                Utils.runOnUiThread(taskRunnable);
                 _runningTaskCount += 1;
             }
         }

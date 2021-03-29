@@ -176,6 +176,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/external/CMakeLists.txt)
 
 ##### audio
 if(USE_AUDIO)
+    message(FATAL_ERROR "USE_AUDIO")
     cocos_source_files(
         cocos/audio/AudioEngine.cpp
         cocos/audio/include/AudioEngine.h
@@ -889,6 +890,7 @@ if(USE_WEBVIEW)
 endif()
 
 if(USE_MIDDLEWARE)
+    message(FATAL_ERROR "use middleware")
     cocos_source_files(
         cocos/editor-support/IOBuffer.cpp
         cocos/editor-support/IOBuffer.h

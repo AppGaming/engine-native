@@ -54,8 +54,8 @@ public:
 
     static JavaVM *getJavaVM();
     static JNIEnv *getEnv();
-    static jobject getActivity();
-    static void init(JNIEnv *env, jobject activity);
+    static jobject getContext();
+    static void init(JNIEnv *env, jobject context);
 
     static bool getStaticMethodInfo(JniMethodInfo &methodinfo,
                                     const char *className,
@@ -305,10 +305,10 @@ public:
         }
         return ret;
     }
-    static bool setClassLoaderFrom(jobject activityInstance);
+    static bool setClassLoaderFrom(jobject contextInstance);
 
 private:
-    static jobject _activity;
+    static jobject _context;
     static JavaVM *_javaVM;
 
     static JNIEnv *cacheEnv();

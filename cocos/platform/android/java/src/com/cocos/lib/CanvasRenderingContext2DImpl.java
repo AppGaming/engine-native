@@ -120,7 +120,7 @@ public class CanvasRenderingContext2DImpl {
         public float y;
     }
 
-    static void init(Context context) {
+    public static void init(Context context) {
         sContext = new WeakReference<>(context);
     }
 

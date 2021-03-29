@@ -70,7 +70,7 @@ namespace cc {
 jmethodID JniHelper::loadclassMethod_methodID = nullptr;
 jobject JniHelper::classloader = nullptr;
 std::function<void()> JniHelper::classloaderCallback = nullptr;
-jobject JniHelper::_activity = nullptr;
+jobject JniHelper::_context = nullptr;
 JavaVM *JniHelper::_javaVM = nullptr;
 
 JavaVM *JniHelper::getJavaVM() {
@@ -79,12 +79,12 @@ JavaVM *JniHelper::getJavaVM() {
     return JniHelper::_javaVM;
 }
 
-void JniHelper::init(JNIEnv *env, jobject activity) {
+void JniHelper::init(JNIEnv *env, jobject context) {
     env->GetJavaVM(&JniHelper::_javaVM);
-    JniHelper::_activity = activity;
+    JniHelper::_context = context;
 
     pthread_key_create(&g_key, _detachCurrentThread);
-    JniHelper::setClassLoaderFrom(activity);
+    JniHelper::setClassLoaderFrom(context);
 }
 
 JNIEnv *JniHelper::cacheEnv() {
@@ -127,11 +127,11 @@ JNIEnv *JniHelper::getEnv() {
     return _env;
 }
 
-jobject JniHelper::getActivity() {
-    return _activity;
+jobject JniHelper::getContext() {
+    return _context;
 }
 
-bool JniHelper::setClassLoaderFrom(jobject activityinstance) {
+bool JniHelper::setClassLoaderFrom(jobject contextInstance) {
     JniMethodInfo _getclassloaderMethod;
     if (!JniHelper::getMethodInfo_DefaultClassLoader(_getclassloaderMethod,
                                                      "android/content/Context",
@@ -140,7 +140,7 @@ bool JniHelper::setClassLoaderFrom(jobject activityinstance) {
         return false;
     }
 
-    jobject _c = cc::JniHelper::getEnv()->CallObjectMethod(activityinstance,
+    jobject _c = cc::JniHelper::getEnv()->CallObjectMethod(contextInstance,
                                                            _getclassloaderMethod.methodID);
 
     if (nullptr == _c) {
@@ -157,7 +157,7 @@ bool JniHelper::setClassLoaderFrom(jobject activityinstance) {
 
     JniHelper::classloader = cc::JniHelper::getEnv()->NewGlobalRef(_c);
     JniHelper::loadclassMethod_methodID = _m.methodID;
-    JniHelper::_activity = cc::JniHelper::getEnv()->NewGlobalRef(activityinstance);
+    JniHelper::_context = cc::JniHelper::getEnv()->NewGlobalRef(contextInstance);
     if (JniHelper::classloaderCallback != nullptr) {
         JniHelper::classloaderCallback();
     }
