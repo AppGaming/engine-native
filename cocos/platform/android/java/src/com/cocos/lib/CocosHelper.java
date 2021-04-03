@@ -25,6 +25,7 @@ THE SOFTWARE.
  ****************************************************************************/
 package com.cocos.lib;
 
+import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.app.Activity;
@@ -41,6 +42,8 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.os.Vibrator;
 import android.util.Log;
@@ -72,7 +75,7 @@ public class CocosHelper {
     // Fields
     // ===========================================================
 
-    private static Activity sActivity;
+    private static Context sContext;
     private static Vibrator sVibrateService;
     private static BatteryReceiver sBatteryReceiver = new BatteryReceiver();
 
@@ -87,6 +90,8 @@ public class CocosHelper {
     private static ZipResourceFile sOBBFile = null;
 
     private static List<Runnable> sTaskOnGameThread = Collections.synchronizedList(new ArrayList<>());
+
+    private static Handler handler = new Handler(Looper.getMainLooper());
 
     /**
      * Battery receiver to getting battery level.
@@ -136,7 +141,7 @@ public class CocosHelper {
         int status = NETWORK_TYPE_NONE;
         NetworkInfo networkInfo;
         try {
-            ConnectivityManager connMgr = (ConnectivityManager) sActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager connMgr = (ConnectivityManager) sContext.getSystemService(Context.CONNECTIVITY_SERVICE);
             networkInfo = connMgr.getActiveNetworkInfo();
         } catch (Exception e) {
             e.printStackTrace();
@@ -159,10 +164,10 @@ public class CocosHelper {
     // ===========================================================
 
     private static boolean sInited = false;
-    public static void init(final Activity activity) {
-        sActivity = activity;
+    public static void init(final Context context) {
+        sContext = context;
         if (!sInited) {
-            CocosHelper.sVibrateService = (Vibrator)activity.getSystemService(Context.VIBRATOR_SERVICE);
+            CocosHelper.sVibrateService = (Vibrator)context.getSystemService(Context.VIBRATOR_SERVICE);
             CocosHelper.initObbFilePath();
             CocosHelper.initializeOBBFile();
 
@@ -173,7 +178,7 @@ public class CocosHelper {
     public static float getBatteryLevel() { return sBatteryReceiver.sBatteryLevel; }
     public static String getObbFilePath() { return CocosHelper.sObbFilePath; }
     public static String getWritablePath() {
-        return sActivity.getFilesDir().getAbsolutePath();
+        return sContext.getFilesDir().getAbsolutePath();
     }
     public static String getCurrentLanguage() {
         return Locale.getDefault().getLanguage();
@@ -188,6 +193,7 @@ public class CocosHelper {
         return Build.VERSION.RELEASE;
     }
 
+    @SuppressLint("MissingPermission")
     public static void vibrate(float duration) {
         try {
             if (sVibrateService != null && sVibrateService.hasVibrator()) {
@@ -221,7 +227,7 @@ public class CocosHelper {
         try {
             Intent i = new Intent(Intent.ACTION_VIEW);
             i.setData(Uri.parse(url));
-            sActivity.startActivity(i);
+            sContext.startActivity(i);
             ret = true;
         } catch (Exception e) {
         }
@@ -229,10 +235,10 @@ public class CocosHelper {
     }
 
     public static void copyTextToClipboard(final String text){
-        sActivity.runOnUiThread(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
-                ClipboardManager myClipboard = (ClipboardManager)sActivity.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipboardManager myClipboard = (ClipboardManager)sContext.getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData myClip = ClipData.newPlainText("text", text);
                 myClipboard.setPrimaryClip(myClip);
             }
@@ -264,7 +270,7 @@ public class CocosHelper {
 
     public static int getDeviceRotation() {
         try {
-            Display display = ((WindowManager) sActivity.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+            Display display = ((WindowManager) sContext.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
             return display.getRotation();
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -281,9 +287,9 @@ public class CocosHelper {
     // - else empty string.
     private static void initObbFilePath() {
         int versionCode = 1;
-        final ApplicationInfo applicationInfo = sActivity.getApplicationInfo();
+        final ApplicationInfo applicationInfo = sContext.getApplicationInfo();
         try {
-            versionCode = CocosHelper.sActivity.getPackageManager().getPackageInfo(applicationInfo.packageName, 0).versionCode;
+            versionCode = CocosHelper.sContext.getPackageManager().getPackageInfo(applicationInfo.packageName, 0).versionCode;
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -295,14 +301,14 @@ public class CocosHelper {
 
     private static void initializeOBBFile() {
         int versionCode = 1;
-        final ApplicationInfo applicationInfo = sActivity.getApplicationInfo();
+        final ApplicationInfo applicationInfo = sContext.getApplicationInfo();
         try {
-            versionCode = sActivity.getPackageManager().getPackageInfo(applicationInfo.packageName, 0).versionCode;
+            versionCode = sContext.getPackageManager().getPackageInfo(applicationInfo.packageName, 0).versionCode;
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
         try {
-            CocosHelper.sOBBFile = APKExpansionSupport.getAPKExpansionZipFile(sActivity, versionCode, 0);
+            CocosHelper.sOBBFile = APKExpansionSupport.getAPKExpansionZipFile(sContext, versionCode, 0);
         } catch (IOException e) {
             e.printStackTrace();
         }
