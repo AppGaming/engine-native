@@ -187,6 +187,7 @@ void GLES3Device::destroy() {
 void GLES3Device::resize(uint width, uint height) {
     _width = width;
     _height = height;
+    CC_LOG_DEBUG("GLES3Device.resize(%d, %d)", width, height);
 }
 
 void GLES3Device::acquire() {

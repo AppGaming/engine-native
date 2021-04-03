@@ -271,8 +271,11 @@ bool GLES2Context::initialize(const ContextInfo &info) {
                 CC_LOG_ERROR("Getting configuration attributes failed.");
                 return;
             }
-            uint width = _device->getWidth();
-            uint height = _device->getHeight();
+//            uint width = _device->getWidth();
+//            uint height = _device->getHeight();
+            ANativeWindow *window = (ANativeWindow *)_windowHandle;
+            uint width = ANativeWindow_getWidth(window);
+            uint height = ANativeWindow_getHeight(window);
             ANativeWindow_setBuffersGeometry((ANativeWindow *)_windowHandle, width, height, nFmt);
 
             EGL_CHECK(_eglSurface = eglCreateWindowSurface(_eglDisplay, _eglConfig, (EGLNativeWindowType)_windowHandle, NULL));

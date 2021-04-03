@@ -395,6 +395,14 @@ void CanvasRenderingContext2D::set_height(float height) {
     recreateBufferIfNeeded();
 }
 
+void CanvasRenderingContext2D::set_size(float width, float height) {
+    if (math::IsEqualF(width, _width) && math::IsEqualF(height, _height)) return;
+    _width = width;
+    _height = height;
+    _isBufferSizeDirty = true;
+    recreateBufferIfNeeded();
+}
+
 void CanvasRenderingContext2D::set_lineWidth(float lineWidth) {
     _lineWidth = lineWidth;
     _impl->setLineWidth(lineWidth);

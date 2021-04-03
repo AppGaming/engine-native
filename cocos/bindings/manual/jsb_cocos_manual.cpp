@@ -457,6 +457,26 @@ static void setCanvasRenderingContext2DProps(cc::CanvasRenderingContext2D *conte
     if (!propVal.isUndefined()) context->set_globalCompositeOperation(propVal.toString());
 }
 
+static bool js_engine_CanvasRenderingContext2D_size(se::State &s) {
+    cc::CanvasRenderingContext2D *cobj = (cc::CanvasRenderingContext2D *)s.nativeThisObject();
+    SE_PRECONDITION2(cobj, false, "js_engine_CanvasRenderingContext2D_size : Invalid Native Object");
+    const auto &args = s.args();
+    size_t argc = args.size();
+    CC_UNUSED bool ok = true;
+    if (argc == 2) {
+        float width = 0;
+        float height = 0;
+        ok &= seval_to_float(args[0], &width);
+        ok &= seval_to_float(args[1], &height);
+        SE_PRECONDITION2(ok, false, "js_engine_CanvasRenderingContext2D_size : Error processing arguments");
+        cobj->set_size(width, height);
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 2);
+    return false;
+}
+SE_BIND_FUNC(js_engine_CanvasRenderingContext2D_size)
+
 static bool js_engine_CanvasRenderingContext2D_measureText(se::State &s) {
     cc::CanvasRenderingContext2D *cobj = (cc::CanvasRenderingContext2D *)s.nativeThisObject();
     SE_PRECONDITION2(cobj, false, "js_engine_CanvasRenderingContext2D_measureText : Invalid Native Object");
@@ -619,6 +639,7 @@ static bool register_canvas_context2d(se::Object *obj) {
     __jsb_cc_CanvasRenderingContext2D_proto->defineFunction("strokeText", _SE(js_engine_CanvasRenderingContext2D_strokeText));
     __jsb_cc_CanvasRenderingContext2D_proto->defineFunction("fillRect", _SE(js_engine_CanvasRenderingContext2D_fillRect));
     __jsb_cc_CanvasRenderingContext2D_proto->defineFunction("measureText", _SE(js_engine_CanvasRenderingContext2D_measureText));
+    __jsb_cc_CanvasRenderingContext2D_proto->defineFunction("resize", _SE(js_engine_CanvasRenderingContext2D_size));
 
     se::ScriptEngine::getInstance()->clearException();
 

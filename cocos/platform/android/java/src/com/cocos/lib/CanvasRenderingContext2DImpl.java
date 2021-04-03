@@ -206,7 +206,6 @@ public class CanvasRenderingContext2DImpl {
     }
 
     private void recreateBuffer(float w, float h) {
-        // Log.d(TAG, "recreateBuffer:" + w + ", " + h);
         if (mBitmap != null) {
             mBitmap.recycle();
         }

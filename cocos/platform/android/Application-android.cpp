@@ -50,10 +50,11 @@ bool setCanvasCallback(se::Object *global) {
     auto viewLogicalSize = cc::Application::getInstance()->getViewLogicalSize();
     se::AutoHandleScope scope;
     se::ScriptEngine *se = se::ScriptEngine::getInstance();
-    char commandBuf[200] = {0};
-    sprintf(commandBuf, "window.innerWidth = %d; window.innerHeight = %d; window.windowHandler = 0x%" PRIxPTR ";",
-            (int)(viewLogicalSize.x),
-            (int)(viewLogicalSize.y),
+    char commandBuf[512] = {0};
+    int width = (int)(viewLogicalSize.x);
+    int height = (int)(viewLogicalSize.y);
+    sprintf(commandBuf, "console.log('Application::init set size(%dx%d)'); window.innerWidth = %d; window.innerHeight = %d; window.windowHandler = 0x%" PRIxPTR ";",
+            width, height, width, height,
             (uintptr_t)cc::cocosApp.window);
     se->evalString(commandBuf);
 
@@ -97,6 +98,22 @@ void Application::onPause() {
 }
 
 void Application::onResume() {
+}
+
+void Application::updateViewLogicalSize(const int width, const int height) {
+  _viewLogicalSize.x = width;
+  _viewLogicalSize.y = height;
+
+  se::AutoHandleScope scope;
+  se::ScriptEngine *se = se::ScriptEngine::getInstance();
+  LOGD("updateViewLogicalSize(%dx%d)", width, height);
+  char commandBuf[1024] = {0};
+  sprintf(commandBuf, "window.innerWidth = %d; window.innerHeight = %d;"
+                      "window.nativeWidth = window.innerWidth;"
+                      "window.nativeHeight = window.innerWidth;"
+                      "cc.view.setResolutionPolicy(0);",
+          width, height);
+  se->evalString(commandBuf);
 }
 
 void Application::setPreferredFramesPerSecond(int fps) {

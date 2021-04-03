@@ -80,6 +80,7 @@ public:
     // functions for properties
     void set_width(float width);
     void set_height(float height);
+    void set_size(float width, float height);
     void set_lineWidth(float lineWidth);
     void set_lineJoin(const std::string &lineJoin);
     void set_lineCap(const std::string &lineCap);

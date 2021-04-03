@@ -158,6 +158,8 @@ public:
     // return size in logical pixel unit.
     inline const cc::Vec2 &getViewLogicalSize() const { return _viewLogicalSize; }
 
+    void updateViewLogicalSize(const int width, const int height);
+
 private:
     static Application *_instance;
     static std::shared_ptr<Scheduler> _scheduler;
