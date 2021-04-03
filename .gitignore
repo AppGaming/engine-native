@@ -171,3 +171,4 @@ build/*
 out
 
 CMakeSettings.json
+package-lock.json
