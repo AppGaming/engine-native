@@ -96,12 +96,19 @@ bool setCanvasCallback(se::Object *global) {
     // https://stackoverflow.com/questions/5795978/string-format-for-intptr-t-and-uintptr-t/41897226#41897226
     // format intptr_t
     //set window.innerWidth/innerHeight in css pixel units
+    UIView *view = (UIView *)cc::Application::getInstance()->getView();
+    
+    if (view == nullptr) {
+        view = UIApplication.sharedApplication.delegate.window.rootViewController.view;
+    }
+    
+
     sprintf(commandBuf, "window.innerWidth = %d; window.innerHeight = %d; window.nativeWidth = %d; window.nativeHeight = %d; window.windowHandler = 0x%" PRIxPTR ";",
             static_cast<int>(viewLogicalSize.x),
             static_cast<int>(viewLogicalSize.y),
             nativeWidth,
             nativeHeight,
-            reinterpret_cast<uintptr_t>(UIApplication.sharedApplication.delegate.window.rootViewController.view));
+            reinterpret_cast<uintptr_t>(view));
 
     se::ScriptEngine *se = se::ScriptEngine::getInstance();
     se->evalString(commandBuf);
@@ -122,6 +129,21 @@ Application::Application(int width, int height) {
     EventDispatcher::init();
     _viewLogicalSize.x = width;
     _viewLogicalSize.y = height;
+    _view = nullptr;
+
+#ifndef CC_USE_METAL
+    _timer = [[MyTimer alloc] initWithApp:this fps:_fps];
+#endif
+}
+
+Application::Application(int width, int height, uintptr_t *view)
+{
+    Application::_instance = this;
+    _scheduler = std::make_shared<Scheduler>();
+    EventDispatcher::init();
+    _viewLogicalSize.x = width;
+    _viewLogicalSize.y = height;
+    _view = view;
 
 #ifndef CC_USE_METAL
     _timer = [[MyTimer alloc] initWithApp:this fps:_fps];
