@@ -84,6 +84,7 @@ public:
     static Application *getInstance() { return _instance; }
 
     Application(int width, int height);
+    Application(int width, int height, uintptr_t *_view);
     virtual ~Application();
 
     virtual bool init();
@@ -157,7 +158,7 @@ public:
 
     // return size in logical pixel unit.
     inline const cc::Vec2 &getViewLogicalSize() const { return _viewLogicalSize; }
-
+    inline const uintptr_t *getView() const { return _view; }
 private:
     static Application *_instance;
     static std::shared_ptr<Scheduler> _scheduler;
@@ -166,6 +167,7 @@ private:
     uint _totalFrames = 0;
     cc::Vec2 _viewLogicalSize;
     bool _needRestart = false;
+    uintptr_t *_view;
 };
 
 // end of platform group
