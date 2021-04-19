@@ -135,6 +135,7 @@ void EventDispatcher::dispatchTouchEvent(const struct TouchEvent &touchEvent) {
 
     se::ValueArray args;
     args.push_back(se::Value(_jsTouchObjArray));
+    args.push_back(se::Value(touchEvent.event_id));
     EventDispatcher::doDispatchEvent(nullptr, eventName, args);
 }
 

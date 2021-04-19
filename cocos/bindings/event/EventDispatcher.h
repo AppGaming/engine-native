@@ -58,6 +58,7 @@ struct TouchEvent {
 
     std::vector<TouchInfo> touches;
     Type type = Type::UNKNOWN;
+    int event_id = 0;
 };
 
 struct MouseEvent {
