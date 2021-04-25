@@ -32,6 +32,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.text.TextPaint;
 import android.util.Log;
 
@@ -65,7 +67,6 @@ public class CanvasRenderingContext2DImpl {
     private int mFillStyleG = 0;
     private int mFillStyleB = 0;
     private int mFillStyleA = 255;
-
     private int mStrokeStyleR = 0;
     private int mStrokeStyleG = 0;
     private int mStrokeStyleB = 0;
@@ -124,7 +125,7 @@ public class CanvasRenderingContext2DImpl {
         sContext = new WeakReference<>(context);
     }
 
-    static void destroy() {
+    public static void destroy() {
         sContext = null;
     }
 
