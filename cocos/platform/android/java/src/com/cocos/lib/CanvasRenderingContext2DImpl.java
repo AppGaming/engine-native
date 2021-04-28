@@ -507,4 +507,8 @@ public class CanvasRenderingContext2DImpl {
         Log.e(TAG, "getDataRef return null");
         return null;
     }
+
+    private Bitmap getDataHandle() {
+        return mBitmap;
+    }
 }

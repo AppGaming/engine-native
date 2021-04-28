@@ -40,6 +40,8 @@ THE SOFTWARE.
 
 struct android_app;
 
+jclass _getClassID(const char *className);
+
 namespace cc {
 
 typedef struct JniMethodInfo_ {
@@ -47,7 +49,6 @@ typedef struct JniMethodInfo_ {
     jclass classID;
     jmethodID methodID;
 } JniMethodInfo;
-
 class CC_DLL JniHelper {
 public:
     typedef std::unordered_map<JNIEnv *, std::vector<jobject>> LocalRefMapType;
@@ -117,6 +118,25 @@ public:
         if (cc::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
             LocalRefMapType localRefs;
             ret = t.env->CallFloatMethod(object, t.methodID, convert(localRefs, t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env, localRefs);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
+    static jobject callObjectObjectMethod(jobject object,
+                                       const std::string &className,
+                                       const std::string &methodName,
+                                       Ts... xs) {
+        jobject ret = nullptr;
+        cc::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")Ljava/lang/Object;";
+        if (cc::JniHelper::getMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            LocalRefMapType localRefs;
+            ret = t.env->CallObjectMethod(object, t.methodID, convert(localRefs, t, xs)...);
             t.env->DeleteLocalRef(t.classID);
             deleteLocalRefs(t.env, localRefs);
         } else {
