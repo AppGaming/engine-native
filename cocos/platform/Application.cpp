@@ -80,8 +80,8 @@ void Application::tick() {
     // iOS/macOS use its own fps limitation algorithm.
 #if (CC_PLATFORM == CC_PLATFORM_ANDROID || CC_PLATFORM == CC_PLATFORM_WINDOWS)
     if (dtNS < _prefererredNanosecondsPerFrame) {
-        std::this_thread::sleep_for(
-            std::chrono::nanoseconds(_prefererredNanosecondsPerFrame - static_cast<long>(dtNS)));
+//        std::this_thread::sleep_for(
+//            std::chrono::nanoseconds(_prefererredNanosecondsPerFrame - static_cast<long>(dtNS)));
         dtNS = _prefererredNanosecondsPerFrame;
     }
 #endif

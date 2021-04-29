@@ -825,14 +825,19 @@ static bool js_loadImage(se::State &s) {
 }
 SE_BIND_FUNC(js_loadImage)
 
+uint32_t freeSize = 0;
+
 static bool js_destroyImage(se::State &s) {
     const auto &args = s.args();
     size_t argc = args.size();
     CC_UNUSED bool ok = true;
-    if (argc == 1) {
+    if (argc <= 2) {
         unsigned long data = 0;
         ok &= seval_to_ulong(args[0], &data);
         SE_PRECONDITION2(ok, false, "js_destroyImage : Error processing arguments");
+        uint32_t size = 0;
+        ok &= seval_to_uint32(args[1], &size);
+        freeSize += size;
         free(reinterpret_cast<char *>(data));
 
         return true;
