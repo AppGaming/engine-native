@@ -48,6 +48,7 @@ GLES3Device::GLES3Device() {
 }
 
 GLES3Device::~GLES3Device() {
+  destroy();
 }
 
 bool GLES3Device::initialize(const DeviceInfo &info) {
@@ -178,6 +179,7 @@ bool GLES3Device::initialize(const DeviceInfo &info) {
 }
 
 void GLES3Device::destroy() {
+  CC_LOG_DEBUG("device destroyed.");
     CC_SAFE_DESTROY(_queue);
     CC_SAFE_DESTROY(_cmdBuff);
     CC_SAFE_DELETE(_gpuStagingBufferPool);

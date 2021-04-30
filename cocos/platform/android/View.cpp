@@ -101,6 +101,9 @@ void View::engineHandleCmd(int cmd) {
         case APP_CMD_LOW_MEMORY:
             cc::EventDispatcher::dispatchMemoryWarningEvent();
             break;
+        case APP_CMD_DESTROY:
+            isWindowInitialized = false;
+            break;
         default:
             break;
     }
