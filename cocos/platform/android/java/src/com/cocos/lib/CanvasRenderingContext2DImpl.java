@@ -124,7 +124,7 @@ public class CanvasRenderingContext2DImpl {
         sContext = new WeakReference<>(context);
     }
 
-    static void destroy() {
+    public static void destroy() {
         sContext = null;
     }
 

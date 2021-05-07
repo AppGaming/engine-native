@@ -71,6 +71,8 @@ class Value;
 extern se::Object *__jsbObj;
 extern se::Object *__glObj;
 
+extern uint32_t freeSize;
+
 bool jsb_register_global_variables(se::Object *global);
 
 void jsb_init_file_operation_delegate();

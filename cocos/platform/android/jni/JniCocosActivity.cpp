@@ -65,7 +65,7 @@ int readCommand(int8_t &cmd) {
     return read(pipeRead, &cmd, sizeof(cmd));
 }
 
-void handlePauseResume(int8_t cmd) {
+void handleState(int8_t cmd) {
     LOGV("activityState=%d", cmd);
     std::unique_lock<std::mutex> lk(cc::cocosApp.mutex);
     cc::cocosApp.activityState = cmd;
@@ -94,11 +94,11 @@ void preExecCmd(int8_t cmd) {
             break;
         case APP_CMD_RESUME:
             LOGV("APP_CMD_RESUME");
-            handlePauseResume(cmd);
+            handleState(cmd);
             break;
         case APP_CMD_PAUSE:
             LOGV("APP_CMD_PAUSE");
-            handlePauseResume(cmd);
+            handleState(cmd);
             break;
         case APP_CMD_DESTROY:
             LOGV("APP_CMD_DESTROY");

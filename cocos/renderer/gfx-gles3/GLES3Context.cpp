@@ -267,7 +267,7 @@ bool GLES3Context::initialize(const ContextInfo &info) {
         uint height = _device->getHeight();
         ANativeWindow_setBuffersGeometry((ANativeWindow *)_windowHandle, width, height, nFmt);
     #endif
-
+        CC_LOG_DEBUG("create surface when RECREATED, 0x%x", _windowHandle);
         EGL_CHECK(_eglSurface = eglCreateWindowSurface(_eglDisplay, _eglConfig, (EGLNativeWindowType)_windowHandle, NULL));
         if (_eglSurface == EGL_NO_SURFACE) {
             auto err = eglGetError();
@@ -322,6 +322,7 @@ bool GLES3Context::initialize(const ContextInfo &info) {
 
     #if (CC_PLATFORM == CC_PLATFORM_ANDROID)
         EventDispatcher::addCustomEventListener(EVENT_DESTROY_WINDOW, [=](const CustomEvent &) -> void {
+            EGL_CHECK(eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
             if (_eglSurface != EGL_NO_SURFACE) {
                 eglDestroySurface(_eglDisplay, _eglSurface);
                 _eglSurface = EGL_NO_SURFACE;
@@ -330,6 +331,7 @@ bool GLES3Context::initialize(const ContextInfo &info) {
 
         EventDispatcher::addCustomEventListener(EVENT_RECREATE_WINDOW, [=](const CustomEvent &event) -> void {
             _windowHandle = (uintptr_t)event.args->ptrVal;
+            CC_LOG_DEBUG("create surface when Context initialized, 0x%x", _windowHandle);
 
             EGLint nFmt;
             if (eglGetConfigAttrib(_eglDisplay, _eglConfig, EGL_NATIVE_VISUAL_ID, &nFmt) == EGL_FALSE) {
@@ -410,6 +412,7 @@ bool GLES3Context::initialize(const ContextInfo &info) {
 }
 
 void GLES3Context::destroy() {
+    CC_LOG_DEBUG("GLES3 Context destroy.");
     EGL_CHECK(eglMakeCurrent(_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
 
     if (!_vecEGLConfig.empty()) {
@@ -425,6 +428,8 @@ void GLES3Context::destroy() {
         EGL_CHECK(eglDestroySurface(_eglDisplay, _eglSurface));
         _eglSurface = EGL_NO_SURFACE;
     }
+
+    eglReleaseThread();
 
     if (_eglDisplay != EGL_NO_DISPLAY) {
         EGL_CHECK(eglTerminate(_eglDisplay));
