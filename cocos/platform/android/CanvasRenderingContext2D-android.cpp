@@ -1,4 +1,3 @@
-#include "CanvasRenderingContext2D-android.h"
 #include "platform/CanvasRenderingContext2D.h"
 #include "base/csscolorparser.h"
 #include "math/Math.h"
@@ -15,201 +14,218 @@
 
 using namespace cc;
 
+enum class CanvasTextAlign {
+    LEFT,
+    CENTER,
+    RIGHT
+};
+
+enum class CanvasTextBaseline {
+    TOP,
+    MIDDLE,
+    BOTTOM,
+    ALPHABETIC
+};
+
+class CanvasRenderingContext2DImpl {
+public:
+    CanvasRenderingContext2DImpl() {
+        jobject obj = JniHelper::newObject(JCLS_CANVASIMPL);
+        _obj = JniHelper::getEnv()->NewGlobalRef(obj);
+        JniHelper::getEnv()->DeleteLocalRef(obj);
+    }
+
+    ~CanvasRenderingContext2DImpl() {
+        JniHelper::getEnv()->DeleteGlobalRef(_obj);
+    }
+
+    void recreateBuffer(float w, float h) {
+        _bufferWidth = w;
+        _bufferHeight = h;
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "recreateBuffer", w, h);
+        fillData();
+    }
+
+    void beginPath() {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "beginPath");
+    }
+
+    void closePath() {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "closePath");
+    }
+
+    void moveTo(float x, float y) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "moveTo", x, y);
+    }
+
+    void lineTo(float x, float y) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "lineTo", x, y);
+    }
+
+    void stroke() {
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "stroke");
+        fillData();
+    }
+
+    void fill() {
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "fill");
+        fillData();
+    }
+
+    void saveContext() {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "saveContext");
+    }
+
+    void restoreContext() {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "restoreContext");
+    }
+
+    void rect(float x, float y, float w, float h) {
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "rect", x, y, w, h);
+        fillData();
+    }
+
+    void clearRect(float x, float y, float w, float h) {
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+        if (x >= _bufferWidth || y >= _bufferHeight)
+            return;
+        if (x + w > _bufferWidth)
+            w = _bufferWidth - x;
+        if (y + h > _bufferHeight)
+            h = _bufferHeight - y;
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "clearRect", x, y, w, h);
+        fillData();
+    }
+
+    void fillRect(float x, float y, float w, float h) {
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+        if (x >= _bufferWidth || y >= _bufferHeight)
+            return;
+        if (x + w > _bufferWidth)
+            w = _bufferWidth - x;
+        if (y + h > _bufferHeight)
+            h = _bufferHeight - y;
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "fillRect", x, y, w, h);
+        fillData();
+    }
+
+    void fillText(const std::string &text, float x, float y, float maxWidth) {
+        if (text.empty() || _bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "fillText", text, x, y, maxWidth);
+        fillData();
+    }
+
+    void strokeText(const std::string &text, float x, float y, float maxWidth) {
+        if (text.empty() || _bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "strokeText", text, x, y, maxWidth);
+        fillData();
+    }
+
+    float measureText(const std::string &text) {
+        if (text.empty())
+            return 0.0f;
+        return JniHelper::callObjectFloatMethod(_obj, JCLS_CANVASIMPL, "measureText", text);
+    }
+
+    void updateFont(const std::string &fontName, float fontSize, bool bold, bool italic, bool oblique, bool smallCaps) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "updateFont", fontName, fontSize, bold, italic, oblique, smallCaps);
+    }
+
+    void setLineCap(const std::string &lineCap) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setLineCap", lineCap);
+    }
+
+    void setLineJoin(const std::string &lineJoin) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setLineJoin", lineJoin);
+    }
+
+    void setTextAlign(CanvasTextAlign align) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setTextAlign", (int)align);
+    }
+
+    void setTextBaseline(CanvasTextBaseline baseline) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setTextBaseline", (int)baseline);
+    }
+
+    void setFillStyle(float r, float g, float b, float a) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setFillStyle", r, g, b, a);
+    }
+
+    void setStrokeStyle(float r, float g, float b, float a) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setStrokeStyle", r, g, b, a);
+    }
+
+    void setLineWidth(float lineWidth) {
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setLineWidth", lineWidth);
+    }
+
+    void _fillImageData(const Data &imageData, float imageWidth, float imageHeight, float offsetX, float offsetY) {
+        if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
+            return;
+
+        jbyteArray arr = JniHelper::getEnv()->NewByteArray(imageData.getSize());
+        JniHelper::getEnv()->SetByteArrayRegion(arr, 0, imageData.getSize(),
+                                                (const jbyte *)imageData.getBytes());
+        JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "_fillImageData", arr, imageWidth,
+                                        imageHeight, offsetX, offsetY);
+        JniHelper::getEnv()->DeleteLocalRef(arr);
+
+        fillData();
+    }
+
+    const Data &getDataRef() const {
+        return _data;
+    }
+
 #define CLAMP(V, HI) std::min((V), (HI))
-CanvasRenderingContext2DImpl::CanvasRenderingContext2DImpl() {
-    jobject obj = JniHelper::newObject(JCLS_CANVASIMPL);
-    _obj = JniHelper::getEnv()->NewGlobalRef(obj);
-    JniHelper::getEnv()->DeleteLocalRef(obj);
-}
+    void unMultiplyAlpha(unsigned char *ptr, ssize_t size) {
+        // Android source data is not premultiplied alpha when API >= 19
+        // please refer CanvasRenderingContext2DImpl::recreateBuffer(float w, float h)
+        // in CanvasRenderingContext2DImpl.java
+        //        if (getAndroidSDKInt() >= 19)
+        //            return;
 
-CanvasRenderingContext2DImpl::~CanvasRenderingContext2DImpl() {
-    JniHelper::getEnv()->DeleteGlobalRef(_obj);
-}
-
-void CanvasRenderingContext2DImpl::recreateBuffer(float w, float h) {
-    _bufferWidth = w;
-    _bufferHeight = h;
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "recreateBuffer", w, h);
-    fillData();
-}
-
-void CanvasRenderingContext2DImpl::beginPath() {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "beginPath");
-}
-
-void CanvasRenderingContext2DImpl::closePath() {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "closePath");
-}
-
-void CanvasRenderingContext2DImpl::moveTo(float x, float y) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "moveTo", x, y);
-}
-
-void CanvasRenderingContext2DImpl::lineTo(float x, float y) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "lineTo", x, y);
-}
-
-void CanvasRenderingContext2DImpl::stroke() {
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "stroke");
-    fillData();
-}
-
-void CanvasRenderingContext2DImpl::fill() {
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "fill");
-    fillData();
-}
-
-void CanvasRenderingContext2DImpl::saveContext() {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "saveContext");
-}
-
-void CanvasRenderingContext2DImpl::restoreContext() {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "restoreContext");
-}
-
-void CanvasRenderingContext2DImpl::rect(float x, float y, float w, float h) {
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "rect", x, y, w, h);
-    fillData();
-}
-
-void CanvasRenderingContext2DImpl::clearRect(float x, float y, float w, float h) {
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-    if (x >= _bufferWidth || y >= _bufferHeight)
-        return;
-    if (x + w > _bufferWidth)
-        w = _bufferWidth - x;
-    if (y + h > _bufferHeight)
-        h = _bufferHeight - y;
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "clearRect", x, y, w, h);
-    fillData();
-}
-
-void CanvasRenderingContext2DImpl::fillRect(float x, float y, float w, float h) {
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-    if (x >= _bufferWidth || y >= _bufferHeight)
-        return;
-    if (x + w > _bufferWidth)
-        w = _bufferWidth - x;
-    if (y + h > _bufferHeight)
-        h = _bufferHeight - y;
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "fillRect", x, y, w, h);
-    fillData();
-}
-
-void
-CanvasRenderingContext2DImpl::fillText(const std::string &text, float x, float y, float maxWidth) {
-    if (text.empty() || _bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "fillText", text, x, y, maxWidth);
-    fillData();
-}
-
-void
-CanvasRenderingContext2DImpl::strokeText(const std::string &text, float x, float y, float maxWidth) {
-    if (text.empty() || _bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "strokeText", text, x, y, maxWidth);
-    fillData();
-}
-
-float CanvasRenderingContext2DImpl::measureText(const std::string &text) {
-    if (text.empty())
-        return 0.0f;
-    return JniHelper::callObjectFloatMethod(_obj, JCLS_CANVASIMPL, "measureText", text);
-}
-
-void
-CanvasRenderingContext2DImpl::updateFont(const std::string &fontName, float fontSize, bool bold,
-                                         bool italic, bool oblique, bool smallCaps) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "updateFont", fontName, fontSize, bold, italic, oblique, smallCaps);
-}
-
-void CanvasRenderingContext2DImpl::setLineCap(const std::string &lineCap) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setLineCap", lineCap);
-}
-
-void CanvasRenderingContext2DImpl::setLineJoin(const std::string &lineJoin) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setLineJoin", lineJoin);
-}
-
-void CanvasRenderingContext2DImpl::setTextAlign(CanvasTextAlign align) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setTextAlign", (int)align);
-}
-
-void CanvasRenderingContext2DImpl::setTextBaseline(CanvasTextBaseline baseline) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setTextBaseline", (int)baseline);
-}
-
-void CanvasRenderingContext2DImpl::setFillStyle(float r, float g, float b, float a) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setFillStyle", r, g, b, a);
-}
-
-void CanvasRenderingContext2DImpl::setStrokeStyle(float r, float g, float b, float a) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setStrokeStyle", r, g, b, a);
-}
-
-void CanvasRenderingContext2DImpl::setLineWidth(float lineWidth) {
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "setLineWidth", lineWidth);
-}
-
-void CanvasRenderingContext2DImpl::_fillImageData(const Data &imageData, float imageWidth,
-                                                  float imageHeight, float offsetX, float offsetY) {
-    if (_bufferWidth < 1.0f || _bufferHeight < 1.0f)
-        return;
-
-    jbyteArray arr = JniHelper::getEnv()->NewByteArray(imageData.getSize());
-    JniHelper::getEnv()->SetByteArrayRegion(arr, 0, imageData.getSize(),
-                                            (const jbyte *)imageData.getBytes());
-    JniHelper::callObjectVoidMethod(_obj, JCLS_CANVASIMPL, "_fillImageData", arr, imageWidth,
-                                    imageHeight, offsetX, offsetY);
-    JniHelper::getEnv()->DeleteLocalRef(arr);
-
-    fillData();
-}
-
-const Data &CanvasRenderingContext2DImpl::getDataRef() const {
-    return _data;
-}
-
-void CanvasRenderingContext2DImpl::unMultiplyAlpha(unsigned char *ptr, ssize_t size) {
-    // Android source data is not premultiplied alpha when API >= 19
-    // please refer CanvasRenderingContext2DImpl::recreateBuffer(float w, float h)
-    // in CanvasRenderingContext2DImpl.java
-    //        if (getAndroidSDKInt() >= 19)
-    //            return;
-
-    float alpha;
-    for (int i = 0; i < size; i += 4) {
-        alpha = (float)ptr[i + 3];
-        if (alpha > 0) {
-            ptr[i] = CLAMP((int)((float)ptr[i] / alpha * 255), 255);
-            ptr[i + 1] = CLAMP((int)((float)ptr[i + 1] / alpha * 255), 255);
-            ptr[i + 2] = CLAMP((int)((float)ptr[i + 2] / alpha * 255), 255);
+        float alpha;
+        for (int i = 0; i < size; i += 4) {
+            alpha = (float)ptr[i + 3];
+            if (alpha > 0) {
+                ptr[i] = CLAMP((int)((float)ptr[i] / alpha * 255), 255);
+                ptr[i + 1] = CLAMP((int)((float)ptr[i + 1] / alpha * 255), 255);
+                ptr[i + 2] = CLAMP((int)((float)ptr[i + 2] / alpha * 255), 255);
+            }
         }
     }
-}
 
-void CanvasRenderingContext2DImpl::fillData() {
-    jbyteArray arr = JniHelper::callObjectByteArrayMethod(_obj, JCLS_CANVASIMPL, "getDataRef");
-    jsize len = JniHelper::getEnv()->GetArrayLength(arr);
-    jbyte *jbarray = (jbyte *)malloc(len * sizeof(jbyte));
-    JniHelper::getEnv()->GetByteArrayRegion(arr, 0, len, jbarray);
-    unMultiplyAlpha((unsigned char *)jbarray, len);
-    _data.fastSet((unsigned char *)jbarray, len); //IDEA: DON'T create new jbarray every time.
-    JniHelper::getEnv()->DeleteLocalRef(arr);
-}
+    void fillData() {
+        jbyteArray arr = JniHelper::callObjectByteArrayMethod(_obj, JCLS_CANVASIMPL, "getDataRef");
+        jsize len = JniHelper::getEnv()->GetArrayLength(arr);
+        jbyte *jbarray = (jbyte *)malloc(len * sizeof(jbyte));
+        JniHelper::getEnv()->GetByteArrayRegion(arr, 0, len, jbarray);
+        unMultiplyAlpha((unsigned char *)jbarray, len);
+        _data.fastSet((unsigned char *)jbarray, len); //IDEA: DON'T create new jbarray every time.
+        JniHelper::getEnv()->DeleteLocalRef(arr);
+    }
+
+private:
+    jobject _obj = nullptr;
+    Data _data;
+    float _bufferWidth = 0.0f;
+    float _bufferHeight = 0.0f;
+};
 
 namespace {
 void fillRectWithColor(uint8_t *buf, uint32_t totalWidth, uint32_t totalHeight, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint8_t r, uint8_t g, uint8_t b) {
@@ -501,12 +517,6 @@ void CanvasRenderingContext2D::transform(float a, float b, float c, float d, flo
 
 void CanvasRenderingContext2D::setTransform(float a, float b, float c, float d, float e, float f) {
     // SE_LOGE("%s isn't implemented!\n", __FUNCTION__);
-}
-
-void CanvasRenderingContext2D::updateImageData() {
-    if (_canvasBufferUpdatedCB != nullptr) {
-        _canvasBufferUpdatedCB(_impl->getDataRef());
-    }
 }
 
 } // namespace cc

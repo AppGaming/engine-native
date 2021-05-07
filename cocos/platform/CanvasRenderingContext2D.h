@@ -101,8 +101,6 @@ public:
     void transform(float a, float b, float c, float d, float e, float f);
     void setTransform(float a, float b, float c, float d, float e, float f);
 
-    void updateImageData();
-
 private:
     void recreateBufferIfNeeded();
 
@@ -127,10 +125,9 @@ public:
     // Compositing
     std::string _globalCompositeOperation = "source-over";
 
-    CanvasRenderingContext2DImpl *_impl = nullptr;
-
 private:
     CanvasBufferUpdatedCallback _canvasBufferUpdatedCB = nullptr;
+    CanvasRenderingContext2DImpl *_impl = nullptr;
 
     bool _isBufferSizeDirty = true;
 };
