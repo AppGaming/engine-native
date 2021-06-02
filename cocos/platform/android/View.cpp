@@ -74,17 +74,13 @@ void View::engineHandleCmd(int cmd) {
     static bool isWindowInitialized = false;
     // Handle CMD here if needed.
     switch (cmd) {
-        case APP_CMD_INIT_WINDOW:
-            if (!isWindowInitialized) {
-                isWindowInitialized = true;
-                return;
-            } else {
-                cc::CustomEvent event;
-                event.name = EVENT_RECREATE_WINDOW;
-                event.args->ptrVal = cocosApp.window;
-                cc::EventDispatcher::dispatchCustomEvent(event);
-            }
-            break;
+        case APP_CMD_INIT_WINDOW: {
+          isWindowInitialized = true;
+          cc::CustomEvent event;
+          event.name = EVENT_RECREATE_WINDOW;
+          event.args->ptrVal = cocosApp.window;
+          cc::EventDispatcher::dispatchCustomEvent(event);
+        } break;
         case APP_CMD_TERM_WINDOW: {
             cc::CustomEvent event;
             event.name = EVENT_DESTROY_WINDOW;

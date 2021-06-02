@@ -263,12 +263,20 @@ bool GLES3Context::initialize(const ContextInfo &info) {
             return false;
         }
 
-        uint width = _device->getWidth();
-        uint height = _device->getHeight();
-        ANativeWindow_setBuffersGeometry((ANativeWindow *)_windowHandle, width, height, nFmt);
+        if (_windowHandle != 0) {
+            uint width = _device->getWidth();
+            uint height = _device->getHeight();
+            ANativeWindow_setBuffersGeometry((ANativeWindow *) _windowHandle, width, height, nFmt);
+        }
     #endif
         CC_LOG_DEBUG("create surface when RECREATED, 0x%x", _windowHandle);
-        EGL_CHECK(_eglSurface = eglCreateWindowSurface(_eglDisplay, _eglConfig, (EGLNativeWindowType)_windowHandle, NULL));
+        if (_windowHandle != 0) {
+            EGL_CHECK(_eglSurface = eglCreateWindowSurface(_eglDisplay, _eglConfig,
+                                                           (EGLNativeWindowType) _windowHandle,
+                                                           NULL));
+        } else {
+            EGL_CHECK(_eglSurface = eglCreatePbufferSurface(_eglDisplay, _eglConfig, NULL));
+        }
         if (_eglSurface == EGL_NO_SURFACE) {
             auto err = eglGetError();
             CC_LOG_ERROR("Window surface created failed. code %d", err);
@@ -343,8 +351,9 @@ bool GLES3Context::initialize(const ContextInfo &info) {
             uint width = ANativeWindow_getWidth(window);
             uint height = ANativeWindow_getHeight(window);
             ANativeWindow_setBuffersGeometry(window, width, height, nFmt);
+            CC_LOG_DEBUG("updateNativeWindow size %dx%d", width, height);
 
-            EGL_CHECK(_eglSurface = eglCreateWindowSurface(_eglDisplay, _eglConfig, (EGLNativeWindowType)_windowHandle, NULL));
+            EGL_CHECK(_eglSurface = eglCreateWindowSurface(_eglDisplay, _eglConfig, (EGLNativeWindowType)_windowHandle, nullptr));
             if (_eglSurface == EGL_NO_SURFACE) {
                 CC_LOG_ERROR("Recreate window surface failed.");
                 return;
@@ -484,7 +493,7 @@ bool GLES3Context::MakeCurrent(bool bound) {
                 default: break;
             }
 
-            if (eglSwapInterval(_eglDisplay, interval) != 1) {
+            if (_windowHandle != 0 && eglSwapInterval(_eglDisplay, interval) != 1) {
                 CC_LOG_ERROR("wglSwapInterval() - FAILED.");
                 return false;
             }
